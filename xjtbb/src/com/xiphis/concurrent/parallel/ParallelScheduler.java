@@ -729,6 +729,12 @@ public final class ParallelScheduler extends com.xiphis.concurrent.internal.Sche
       }
     }
   }
+  //
+  @Override
+  protected int getPoolSize()
+  {
+    return _arena.prefix().number_of_workers;
+  }
 
   @Override
   protected void syncWorkerCancellation(int cancel_count)

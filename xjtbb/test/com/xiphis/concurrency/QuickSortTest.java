@@ -50,6 +50,9 @@ public class QuickSortTest
   private static final int DATA_SIZE = 6553600;
   private static Double[] unsortedData;
 
+  private static long parallelTime;
+  private static long serialTime;
+
   @BeforeTest
   protected void setUp()
       throws Exception
@@ -66,18 +69,18 @@ public class QuickSortTest
       }
       System.out.println("Finished generating random numbers.");
     }
+    parallelTime = serialTime = 0;
   }
 
   @AfterTest
   protected void cleanup()
       throws Exception
   {
-    System.out.println("Done");
     Thread.sleep(100L);
   }
 
   @Test
-  public void testThreadedSort0()
+  public void test0ThreadedSort()
   {
     System.gc();
     Double[] data = unsortedData.clone();
@@ -85,10 +88,11 @@ public class QuickSortTest
     Parallel.parallelSort(data);
     time += System.nanoTime();
     System.out.printf("Parallel.parallelSort() took %d ns\n", time);
+    //parallelTime += time;
   }
 
   @Test
-  public void testSystemSort0()
+  public void test0SystemSort()
   {
     System.gc();
     Double[] data = unsortedData.clone();
@@ -96,10 +100,11 @@ public class QuickSortTest
     Arrays.sort(data);
     time += System.nanoTime();
     System.out.printf("Arrays.sort() took %d ns\n", time);
+    //serialTime += time;
   }
 
   @Test
-  public void testThreadedSort1()
+  public void test1ThreadedSort()
   {
     System.gc();
     Double[] data = unsortedData.clone();
@@ -107,10 +112,11 @@ public class QuickSortTest
     Parallel.parallelSort(data);
     time += System.nanoTime();
     System.out.printf("Parallel.parallelSort() took %d ns\n", time);
+    parallelTime += time;
   }
 
   @Test
-  public void testSystemSort1()
+  public void test1SystemSort()
   {
     System.gc();
     Double[] data = unsortedData.clone();
@@ -118,10 +124,11 @@ public class QuickSortTest
     Arrays.sort(data);
     time += System.nanoTime();
     System.out.printf("Arrays.sort() took %d ns\n", time);
+    serialTime += time;
   }
 
   @Test
-  public void testThreadedSort2()
+  public void test2ThreadedSort()
   {
     System.gc();
     Double[] data = unsortedData.clone();
@@ -129,10 +136,11 @@ public class QuickSortTest
     Parallel.parallelSort(data);
     time += System.nanoTime();
     System.out.printf("Parallel.parallelSort() took %d ns\n", time);
+    parallelTime += time;
   }
 
   @Test
-  public void testSystemSort2()
+  public void test2SystemSort()
   {
     System.gc();
     Double[] data = unsortedData.clone();
@@ -140,6 +148,37 @@ public class QuickSortTest
     Arrays.sort(data);
     time += System.nanoTime();
     System.out.printf("Arrays.sort() took %d ns\n", time);
+    serialTime += time;
+  }
+
+  @Test
+  public void test3ThreadedSort()
+  {
+    System.gc();
+    Double[] data = unsortedData.clone();
+    long time = -System.nanoTime();
+    Parallel.parallelSort(data);
+    time += System.nanoTime();
+    System.out.printf("Parallel.parallelSort() took %d ns\n", time);
+    parallelTime += time;
+  }
+
+  @Test
+  public void test3SystemSort()
+  {
+    System.gc();
+    Double[] data = unsortedData.clone();
+    long time = -System.nanoTime();
+    Arrays.sort(data);
+    time += System.nanoTime();
+    System.out.printf("Arrays.sort() took %d ns\n", time);
+    serialTime += time;
+  }
+
+  @Test
+  public void testResults()
+  {
+    System.out.println("Done .. speed up is " + ((serialTime * 100) / parallelTime) + "%");
   }
 
 }

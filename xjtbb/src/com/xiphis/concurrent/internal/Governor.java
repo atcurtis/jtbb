@@ -42,7 +42,7 @@ public class Governor
 
   public static String _defaultScheduler = com.xiphis.concurrent.parallel.ParallelScheduler.class.getName();
   static SchedulerInitializer _initScheduler;
-  private static final ThreadLocal<Scheduler> _theTLS = new ThreadLocal<Scheduler>();
+  static final ThreadLocal<Scheduler> _theTLS = new ThreadLocal<Scheduler>();
 
   /**
    * Obtain the thread local instance of TBB scheduler.

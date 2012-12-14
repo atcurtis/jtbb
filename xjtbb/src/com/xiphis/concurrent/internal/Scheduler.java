@@ -795,7 +795,7 @@ public abstract class Scheduler
             }
             // Try to steal a task from a random victim.
             int n = getPoolSize();
-            if (/*true ||*/ n > 1)
+            if (n > 1)
             {
               if (_affinityId == 0 || (t = getMailboxTask()) == null)
               {
@@ -1727,7 +1727,7 @@ public abstract class Scheduler
     {
       // Double-check
       TBB.runOneTimeInitialization();
-      Scheduler s = Governor.localScheduler();
+      Scheduler s = Governor._theTLS.get();
       if (s != null)
       {
         s._refCount += 1;
