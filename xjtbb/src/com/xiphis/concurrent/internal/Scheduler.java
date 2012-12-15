@@ -677,14 +677,8 @@ public abstract class Scheduler
                   // inserting an "acquire" fence.
                   s.depth();
                   s.prefix()._refCountActive = false;
-                  if (TBB.USE_ASSERT && !(s.prefix()._owner == this))
-                  {
-                    IllegalStateException e = new IllegalStateException("ownership corrupt?");
-                    LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-                    throw e;
-                  }
-                  // __TBB_ASSERT( s->prefix()._depth>=d, NULL
-                  // );
+                  if (TBB.USE_ASSERT) assert s.prefix()._owner == this : "ownership corrupt?";
+                  if (TBB.USE_ASSERT) assert s.prefix()._depth >= d;
                   if (t_next == null)
                   {
                     t_next = s;
@@ -699,13 +693,7 @@ public abstract class Scheduler
               }
 
               case reexecute: // set by recycle_to_reexecute()
-                if (TBB.USE_ASSERT && !(t_next != null && t_next != t))
-                {
-                  IllegalStateException e = new IllegalStateException(
-                      "reexecution requires that method 'execute' return another task");
-                  LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-                  throw e;
-                }
+                if (TBB.USE_ASSERT) assert t_next != null && t_next != t : "reexecution requires that method 'execute' return another task";
                 // TBB_TRACE(("%p.wait_for_all: put task %p back into array",this,t));
                 t.prefix()._state = Task.State.allocated;
                 spawn(t, t.prefix()._next);
@@ -750,22 +738,12 @@ public abstract class Scheduler
               break;
             }
             t = getTask(d);
-            if (TBB.USE_ASSERT && !(t == null || !isProxy(t)))
-            {
-              IllegalStateException e = new IllegalStateException("unexpected proxy");
-              LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-              throw e;
-            }
+            if (TBB.USE_ASSERT) assert t == null || !isProxy(t) : "unexpected proxy";
             if (TBB.USE_ASSERT) assert assertOkay();
             if (TBB.USE_ASSERT && t != null)
             {
               TBB.AssertOkay(t);
-              if (!(t.prefix()._owner == this))
-              {
-                IllegalStateException e = new IllegalStateException("thread got task that it does not own");
-                LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-                throw e;
-              }
+              assert t.prefix()._owner == this : "thread got task that it does not own";
             }
           } while (t != null); // end of local task array processing
           // loop
@@ -835,20 +813,14 @@ public abstract class Scheduler
                 {
                   notifyEntryObservers();
                 }
-                // __TBB_ASSERT( t->prefix()._depth>=d, NULL );
-                if (TBB.USE_ASSERT && !(t != null))
-                {
-                  IllegalStateException e = new IllegalStateException();
-                  LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-                  throw e;
-                }
+                if (TBB.USE_ASSERT) assert t.prefix()._depth>=d;
                 _inbox.setIsIdle(false);
                 break;
               }
             }
             // Pause, even if we are going to yield, because the
             // yield might return immediately.
-            TBB.Pause(TBB.PAUSE_TIME);
+            //TBB.Pause(TBB.PAUSE_TIME);
             int yield_threshold = 2 * n;
             if (failure_count >= yield_threshold)
             {
@@ -871,12 +843,7 @@ public abstract class Scheduler
           {
             throw new IllegalStateException();
           }
-          if (TBB.USE_ASSERT && !(!isProxy(t)))
-          {
-            IllegalStateException e = new IllegalStateException("unexpected proxy");
-            LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-            throw e;
-          }
+          if (TBB.USE_ASSERT) assert !isProxy(t) : "unexpected proxy";
           t.prefix()._owner = this;
         } // end of stealing loop
       }
@@ -929,12 +896,7 @@ public abstract class Scheduler
     // ) {
     // leave_arena(/*compress=*/true);
     // }
-    if (TBB.USE_ASSERT && !(parent.prefix()._context != null && dummyTask().prefix()._context != null))
-    {
-      IllegalStateException e = new IllegalStateException();
-      LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-      throw e;
-    }
+    if (TBB.USE_ASSERT) assert parent.prefix()._context != null && dummyTask().prefix()._context != null;
     TaskGroupContext parent_ctx = parent.prefix()._context;
     if (parent_ctx._cancellationRequested.get() != 0)
     {
@@ -947,29 +909,15 @@ public abstract class Scheduler
         // cancellation data.
         parent_ctx._cancellationRequested.set(0);
         parent_ctx._exception = null;
-        if (TBB.USE_ASSERT && !(dummyTask().prefix()._context == parent_ctx || !TBB.CancellationInfoPresent(
-            dummyTask())))
-        {
-          throw new IllegalStateException("Unexpected exception or cancellation data in the dummy task");
-        }
+        if (TBB.USE_ASSERT) assert dummyTask().prefix()._context == parent_ctx || !TBB.CancellationInfoPresent(
+            dummyTask()) : "Unexpected exception or cancellation data in the dummy task";
         // If possible, add assertion that master's dummy task
         // _context does not have children
         TBB.rethrow(pe);
       }
     }
-    if (TBB.USE_ASSERT && !(!isWorker() || !TBB.CancellationInfoPresent(dummyTask())))
-    {
-      IllegalStateException e = new IllegalStateException("Worker's dummy task context modified");
-      LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-      throw e;
-    }
-    if (TBB.USE_ASSERT && !(runningTask() != dummyTask() || !TBB.CancellationInfoPresent(dummyTask())))
-    {
-      IllegalStateException e =
-          new IllegalStateException("Unexpected exception or cancellation data in the master's dummy task");
-      LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-      throw e;
-    }
+    if (TBB.USE_ASSERT) assert !isWorker() || !TBB.CancellationInfoPresent(dummyTask()) : "Worker's dummy task context modified";
+    if (TBB.USE_ASSERT) assert runningTask() != dummyTask() || !TBB.CancellationInfoPresent(dummyTask()) : "Unexpected exception or cancellation data in the master's dummy task";
     if (TBB.USE_ASSERT) assert assertOkay();
   }
 
@@ -1138,12 +1086,7 @@ public abstract class Scheduler
     p._refCount.set(0xDEADBEEF);
     p._owner = null;
     // poison_pointer(p._owner);
-    if (TBB.USE_ASSERT && !(t.state() == Task.State.executing || t.state() == Task.State.allocated))
-    {
-      IllegalStateException e = new IllegalStateException();
-      LOG.throwing(Scheduler.class.getName(), "freeTask", e);
-      throw e;
-    }
+    if (TBB.USE_ASSERT) assert t.state() == Task.State.executing || t.state() == Task.State.allocated;
     p._state = Task.State.freed;
     deallocateTask(t);
   }
@@ -1155,7 +1098,8 @@ public abstract class Scheduler
    */
   private void deallocateTask(Task t)
   {
-    TaskPrefix p = t.prefix();
+    TaskBase tb = t;
+    TaskPrefix p = tb.prefix();
     // p._state = 0xFF;
     // p.extra_state = 0xFF;
     p._next[0] = null;
@@ -1163,7 +1107,7 @@ public abstract class Scheduler
     // NFS_Free((char*)&t-task_prefix_reservation_size);
     p._link.first = null;
     p._link.second = null;
-    TaskBase tb = t;
+
     p._link = tb._link = null;
     _taskNodeCount -= 1;
   }
@@ -1193,13 +1137,7 @@ public abstract class Scheduler
           ctx.propagateCancellationFromAncestors();
         }
         node = node._next.get();
-        if (TBB.USE_ASSERT && !(ctx.isAlive()))
-        {
-          IllegalStateException e =
-              new IllegalStateException("Walked into a destroyed context while propagating cancellation");
-          LOG.throwing(Scheduler.class.getName(), "propagateCancellation", e);
-          throw e;
-        }
+        if (TBB.USE_ASSERT) assert ctx.isAlive() : "Walked into a destroyed context while propagating cancellation";
       }
     }
   }
@@ -1212,12 +1150,7 @@ public abstract class Scheduler
    */
   public final void propagateCancellation(TaskGroupContext ctx)
   {
-    if (TBB.USE_ASSERT && !(ctx._cancellationRequested.get() != 0))
-    {
-      IllegalArgumentException e = new IllegalArgumentException("No cancellation request in the context");
-      LOG.throwing(Scheduler.class.getName(), "internalWaitForAll", e);
-      throw e;
-    }
+    if (TBB.USE_ASSERT) assert ctx._cancellationRequested.get() != 0 : "No cancellation request in the context";
     // The whole propagation algorithm is under the lock in order to ensure
     // correctness
     // in case of parallel cancellations at the different levels of the
@@ -1675,14 +1608,8 @@ public abstract class Scheduler
      */
     final void internalSetRefCount(int count)
     {
-      if (TBB.USE_ASSERT && !(count >= 0))
-      {
-        throw new IllegalArgumentException("count must not be negative");
-      }
-      if (TBB.USE_ASSERT && !(!prefix()._refCountActive))
-      {
-        throw new IllegalStateException("_refCount race detected");
-      }
+      if (TBB.USE_ASSERT) assert count >= 0 : "count must not be negative";
+      if (TBB.USE_ASSERT) assert !prefix()._refCountActive : "_refCount race detected";
       // ITT_NOTIFY(sync_releasing, &prefix()._refCount);
       prefix()._refCount.set(count);
     }
@@ -1695,12 +1622,7 @@ public abstract class Scheduler
     final int internalDecrementRefCount()
     {
       int k = prefix()._refCount.getAndDecrement();
-      if (TBB.USE_ASSERT && !(k >= 1))
-      {
-        IllegalStateException e = new IllegalStateException("task's reference count underflowed");
-        LOG.throwing(Scheduler.class.getName(), "internalDecrementRefCount", e);
-        throw e;
-      }
+      if (TBB.USE_ASSERT) assert k >= 1 : "task's reference count underflowed";
       // if( k==1 )
       // ITT_NOTIFY( sync_acquired, &prefix()._refCount );
       return k - 1;
@@ -1713,6 +1635,24 @@ public abstract class Scheduler
      */
     public final TaskPrefix prefix()
     {
+      if (_link == null)
+      {
+        Task t = _emptyTaskFactory.construct();
+        TaskBase tb = t;
+        tb._link = new Pair<Task, TaskPrefix>(t);
+        TaskPrefix p = new TaskPrefix(tb._link);
+        p._context = null;
+        p._owner = null;
+        p._refCount.set(0);
+        p._depth = 0;
+        p._parent = null;
+        p._taskProxy = false;
+        p._refCountActive = false;
+        p._affinity = 0;
+        p._state = Task.State.allocated;
+        return p;
+
+      }
       return _link.second;
     }
   }

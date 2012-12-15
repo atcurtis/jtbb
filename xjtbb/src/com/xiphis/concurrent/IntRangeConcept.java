@@ -59,7 +59,7 @@ public class IntRangeConcept extends RangeConcept<IntRangeConcept.IntRange>
   public IntRange split(IntRange range)
   {
     int split = range.isDivisible() ? (range.size() + 1) / 2 : range.size();
-    IntRange result = new IntRange(split, range.size() - split);
+    IntRange result = new IntRange(range.begin() + split, range.size() - split);
     range._size = split;
     return result;
   }

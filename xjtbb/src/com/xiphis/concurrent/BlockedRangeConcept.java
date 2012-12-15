@@ -29,12 +29,64 @@
  */
 package com.xiphis.concurrent;
 
+import com.xiphis.concurrent.internal.TBB;
+
 public abstract class BlockedRangeConcept<Value, R extends BlockedRangeConcept<Value, R>.BlockedRange> //
     extends RangeConcept<R>
 {
+  private final int _grainsize;
+
+  public BlockedRangeConcept()
+  {
+    this(1);
+  }
+
+  public BlockedRangeConcept(int grainsize)
+  {
+    if (TBB.USE_ASSERT) assert grainsize > 0 : "grainsize must be positive";
+    _grainsize = grainsize;
+  }
+
+  public abstract R newInstance(Value begin, Value end);
+
+  @Override
+  public R clone(R range)
+  {
+    return newInstance(range.begin(), range.end());
+  }
+
+  @Override
+  public R split(R r)
+  {
+    if (TBB.USE_ASSERT) assert r.isDivisible() : "cannot split indivisible range";
+    R s = clone(r);
+    Value middle = r.increment(r.begin(), r.difference(r.end(), r.begin()) / 2);
+    r._end = middle;
+    s._begin = middle;
+    return s;
+  }
 
   public abstract class BlockedRange extends Range
   {
+    private Value _begin;
+    private Value _end;
+
+    protected BlockedRange(Value begin, Value end)
+    {
+      _begin = begin;
+      _end = end;
+    }
+
+    public final Value begin()
+    {
+      return _begin;
+    }
+
+    public final Value end()
+    {
+      return _end;
+    }
+
     /**
      * Compares values i and j.
      *
