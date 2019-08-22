@@ -4,10 +4,13 @@ import com.xiphis.concurrent.TaskScheduler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,7 +24,8 @@ public class SeismicVideo extends JFrame
   final Universe _u;
   int _numberOfFrames;
   int _threadsHigh;
-  private boolean _initIsParallel;
+  int _frameCount;
+  private boolean _initIsParallel = true;
   private boolean _updating = true;
   private boolean _running = true;
   private Canvas _canvas = new Canvas(getGraphicsConfiguration());
@@ -87,6 +91,8 @@ public class SeismicVideo extends JFrame
 
     getContentPane().add(panel);
 
+    new Timer(5000, new Statistics()).start();
+
     new Worker().execute();
   }
 
@@ -113,6 +119,7 @@ public class SeismicVideo extends JFrame
       if (_numberOfFrames > 0)
         --_numberOfFrames;
       _canvas.getGraphics().drawImage(img, 0, 0, Universe.UNIVERSE_WIDTH, Universe.UNIVERSE_HEIGHT, null);
+      _frameCount++;
     } while (nextFrame() && _numberOfFrames != 0);
   }
 
@@ -127,7 +134,33 @@ public class SeismicVideo extends JFrame
       onProcess();
 
       System.out.println("foo");
+
+      dispatchEvent(new WindowEvent(SeismicVideo.this, WindowEvent.WINDOW_CLOSING));
       return null;
+    }
+  }
+
+  private class Statistics implements ActionListener
+  {
+    int lastFrameCount;
+    long lastNanos = System.nanoTime();
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      int frameCount = _frameCount;
+      long now = System.nanoTime();
+      try
+      {
+        int delta = frameCount - lastFrameCount;
+        long perf = (100000000000L*delta) / (now - lastNanos);
+        System.out.println("fps = " + (perf / 100.0));
+      }
+      finally
+      {
+        lastFrameCount = frameCount;
+        lastNanos = now;
+      }
     }
   }
 

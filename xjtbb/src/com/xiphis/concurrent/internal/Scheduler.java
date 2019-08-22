@@ -1325,7 +1325,7 @@ public abstract class Scheduler
   public static class TaskBase
   {
 
-    Pair<Task, TaskPrefix> _link;
+    volatile Pair<Task, TaskPrefix> _link;
 
     protected TaskBase()
     {
@@ -1637,6 +1637,7 @@ public abstract class Scheduler
     {
       if (_link == null)
       {
+        System.err.println("oops");
         Task t = _emptyTaskFactory.construct();
         TaskBase tb = t;
         tb._link = new Pair<Task, TaskPrefix>(t);

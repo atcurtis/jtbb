@@ -42,6 +42,8 @@ public class Universe
   private static final int COLOR_MAP_SIZE = 1024;
   private final Color[][] ColorMap = new Color[4][COLOR_MAP_SIZE];
 
+  public int grainSize = 8;
+
   enum MaterialType
   {
     WATER {
@@ -206,7 +208,7 @@ public class Universe
 
   void parallelUpdateStress()
   {
-    Parallel.parallelFor(new IntRangeConcept().newInstance(0, UNIVERSE_HEIGHT-1), new UpdateStressBody());
+    Parallel.parallelFor(new IntRangeConcept(grainSize).newInstance(0, UNIVERSE_HEIGHT-1), new UpdateStressBody());
   }
 
   void updateVelocity(Rectangle r)
@@ -251,7 +253,7 @@ public class Universe
 
   void parallelUpdateVelocity()
   {
-    Parallel.parallelFor(new IntRangeConcept().newInstance(1, UNIVERSE_HEIGHT - 2), new UpdateVelocityBody(this));
+    Parallel.parallelFor(new IntRangeConcept(grainSize).newInstance(1, UNIVERSE_HEIGHT - 2), new UpdateVelocityBody(this));
   }
 
   void serialUpdateUniverse()

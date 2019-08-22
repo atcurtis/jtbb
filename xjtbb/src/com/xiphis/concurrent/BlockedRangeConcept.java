@@ -68,8 +68,8 @@ public abstract class BlockedRangeConcept<Value, R extends BlockedRangeConcept<V
 
   public abstract class BlockedRange extends Range
   {
-    private Value _begin;
-    private Value _end;
+    Value _begin;
+    Value _end;
 
     protected BlockedRange(Value begin, Value end)
     {
